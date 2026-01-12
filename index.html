@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<!-- Mendefinisikan bahasa dokumen sebagai Bahasa Indonesia -->
+<html lang="id">
+<head>
+    <!-- Metadata dasar untuk encoding karakter -->
+    <meta charset="UTF-8">
+    <!-- Viewport setting agar tampilan responsif di HP (Mobile First) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Waris Islam (Offline)</title>
+    
+    <!-- BAGIAN CSS (GAYA TAMPILAN) -->
+    <!-- Kita menulis CSS manual di sini menggantikan Tailwind CSS -->
+    <style>
+        /* --- 1. VARIABEL WARNA & DASAR --- */
+        :root {
+            /* Warna utama (Emerald Green mirip Tailwind) */
+            --primary-color: #059669; 
+            --primary-dark: #047857;
+            --primary-light: #d1fae5;
+            /* Warna latar belakang aplikasi */
+            --bg-color: #f0fdf4;
+            /* Warna teks */
+            --text-dark: #1f2937;
+            --text-muted: #6b7280;
+            /* Warna border */
+            --border-color: #e5e7eb;
+            /* Warna Putih */
+            --white: #ffffff;
+        }
+
+        /* Reset dasar agar tampilan konsisten di semua browser */
+        * {
+            box-sizing: border-box; /* Agar padding tidak menambah lebar elemen */
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Mengatur font default menggunakan font sistem agar tidak perlu download font google */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            padding-bottom: 80px; /* Ruang kosong di bawah untuk scroll */
+        }
+
+        /* --- 2. KOMPONEN LAYOUT --- */
+        /* Wadah utama aplikasi, dibatasi lebarnya agar mirip tampilan aplikasi HP */
+        .container {
+            max-width: 480px; /* Lebar maksimal seperti HP */
+            margin: 0 auto; /* Posisi tengah */
+            padding: 1rem; /* Jarak dalam */
+        }
+
+        /* --- 3. HEADER --- */
+        header {
+            background-color: var(--primary-dark);
+            color: var(--white);
+            padding: 1.5rem;
+            border-bottom-left-radius: 1.5rem; /* Sudut melengkung bawah kiri */
+            border-bottom-right-radius: 1.5rem; /* Sudut melengkung bawah kanan */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); /* Efek bayangan */
+            position: sticky; /* Agar menempel di atas saat scroll */
+            top: 0;
+            z-index: 100; /* Agar selalu di atas elemen lain */
+        }
+
+        .header-content {
+            max-width: 480px;
+            margin: 0 auto;
+            display: flex; /* Menyusun elemen secara horizontal */
+            justify-content: space-between; /* Jarak antar elemen berjauhan */
+            align-items: center; /* Rata tengah vertikal */
+        }
+
+        /* Tombol info di header */
+        .btn-icon {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        /* --- 4. KARTU (CARD) --- */
+        /* Kotak putih pembungkus setiap bagian form */
+        .card {
+            background-color: var(--white);
+            border-radius: 1rem; /* Sudut melengkung */
+            padding: 1.25rem;
+            margin-bottom: 1rem; /* Jarak antar kartu */
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* Bayangan tipis */
+            border: 1px solid var(--primary-light);
+        }
+
+        .card-title {
+            color: var(--primary-dark);
+            font-weight: bold;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem; /* Jarak ikon dan teks */
+        }
+
+        /* Ikon kecil di judul kartu */
+        .icon-box {
+            background-color: var(--primary-light);
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- 5. FORM INPUT --- */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block; /* Agar label menempati satu baris penuh */
+            font-size: 0.875rem; /* Ukuran font agak kecil */
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+            color: var(--text-dark);
+        }
+
+        /* Styling input text dan number */
+        input[type="number"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            background-color: #f9fafb;
+            outline: none; /* Hilangkan garis biru default browser */
+            transition: border-color 0.2s;
+        }
+
+        /* Efek saat input diklik */
+        input[type="number"]:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+        }
+
+        /* Grid layout untuk input yang bersebelahan (seperti Hutang & Biaya Jenazah) */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* 2 Kolom sama besar */
+            gap: 0.75rem;
+        }
+
+        /* --- 6. RADIO BUTTON (JENIS KELAMIN) --- */
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        /* Menyembunyikan radio button asli browser */
+        .radio-group input[type="radio"] {
+            display: none;
+        }
+
+        /* Membuat tampilan kustom untuk radio button */
+        .radio-label {
+            flex: 1; /* Mengisi ruang yang tersedia */
+            padding: 0.75rem;
+            text-align: center;
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        /* Style jika radio dipilih */
+        .radio-group input[type="radio"]:checked + .radio-label {
+            border-color: var(--primary-color);
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+            font-weight: bold;
+        }
+
+        /* --- 7. INPUT JUMLAH (+ / -) --- */
+        .counter-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f9fafb;
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+        }
+
+        .counter-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        /* Tombol bulat untuk + dan - */
+        .btn-circle {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .btn-circle:active { transform: scale(0.9); }
+
+        /* --- 8. TOMBOL UTAMA --- */
+        .btn-primary {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.4);
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .btn-primary:active {
+            transform: scale(0.98); /* Efek pencet */
+        }
+
+        /* --- 9. HASIL PERHITUNGAN --- */
+        .result-container {
+            display: none; /* Disembunyikan dulu */
+            margin-top: 2rem;
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden; /* Agar anak elemen tidak keluar dari radius */
+            border: 1px solid var(--primary-light);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .result-header {
+            background-color: var(--primary-light);
+            padding: 1rem;
+            border-bottom: 1px solid var(--primary-light);
+        }
+
+        .heir-item {
+            padding: 1rem;
+            border-bottom: 1px solid #f3f4f6;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .heir-item:last-child { border-bottom: none; }
+
+        .tag-badge {
+            font-size: 0.75rem;
+            background-color: #e5e7eb;
+            padding: 0.1rem 0.4rem;
+            border-radius: 9999px;
+            color: #4b5563;
+        }
+
+        /* --- 10. MODAL (POPUP) --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0,0,0,0.5); /* Latar gelap transparan */
+            z-index: 200;
+            display: none; /* Sembunyi default */
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 1rem;
+            max-width: 400px;
+            width: 100%;
+            max-height: 80vh; /* Maksimal 80% tinggi layar */
+            overflow-y: auto; /* Bisa discroll jika konten panjang */
+            padding: 1.5rem;
+        }
+
+        /* Utility class untuk teks kecil dan miring */
+        .text-small { font-size: 0.75rem; color: var(--text-muted); }
+        .text-italic { font-style: italic; }
+        
+        /* Ikon SVG digambar manual menggunakan CSS/SVG inline */
+        svg { width: 1.25em; height: 1.25em; fill: currentColor; }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER APLIKASI -->
+    <header>
+        <div class="header-content">
+            <div>
+                <!-- Judul -->
+                <h1 style="font-size: 1.25rem; font-weight: bold; display: flex; align-items: center; gap: 0.5rem;">
+                    <!-- Ikon Timbangan (SVG Inline) -->
+                    <svg viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm0 3.5L19.5 19H4.5L12 5.5z"/></svg> 
+                    Faraidh App
+                </h1>
+                <p style="font-size: 0.75rem; opacity: 0.9;">Kalkulator Waris Islam Offline</p>
+            </div>
+            <!-- Tombol Info -->
+            <button onclick="bukaInfo()" class="btn-icon">
+                <!-- Ikon Info (SVG Inline) -->
+                <svg viewBox="0 0 24 24"><path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- KONTEN UTAMA -->
+    <main class="container">
+
+        <!-- 1. FORM HARTA & KEWAJIBAN -->
+        <section class="card">
+            <div class="card-title">
+                <div class="icon-box">Rp</div>
+                1. Harta & Kewajiban
+            </div>
+            
+            <div class="form-group">
+                <label>Total Aset (Rupiah)</label>
+                <!-- oninput digunakan agar format angka bisa dihandle nanti jika mau -->
+                <input type="number" id="totalAsset" placeholder="Contoh: 100000000">
+            </div>
+            
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Hutang</label>
+                    <input type="number" id="debt" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Biaya Jenazah</label>
+                    <input type="number" id="funeralCost" placeholder="0">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Wasiat (Maks 1/3)</label>
+                <input type="number" id="wasiat" placeholder="0">
+                <p class="text-small text-italic" style="margin-top: 0.25rem;">*Ditunaikan setelah hutang lunas.</p>
+            </div>
+        </section>
+
+        <!-- 2. DATA PEWARIS & KELUARGA -->
+        <section class="card">
+            <div class="card-title">
+                <div class="icon-box">
+                    <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                </div>
+                2. Ahli Waris
+            </div>
+
+            <!-- Radio Button Gender -->
+            <div class="form-group">
+                <label>Jenis Kelamin Pewaris (Yang Meninggal)</label>
+                <div class="radio-group">
+                    <label>
+                        <!-- onchange memicu fungsi ubahLabelPasangan -->
+                        <input type="radio" name="gender" value="male" checked onchange="ubahLabelPasangan()">
+                        <div class="radio-label">Laki-laki</div>
+                    </label>
+                    <label>
+                        <input type="radio" name="gender" value="female" onchange="ubahLabelPasangan()">
+                        <div class="radio-label">Perempuan</div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Input Pasangan (Istri/Suami) -->
+            <div class="counter-wrapper">
+                <label id="labelPasangan" style="margin:0; font-size: 1rem;">Istri</label>
+                <div class="counter-controls">
+                    <!-- Tombol Kurang -->
+                    <button class="btn-circle" onclick="ubahNilai('jumlahPasangan', -1)">-</button>
+                    <!-- Angka Penampil -->
+                    <span id="jumlahPasangan" style="font-weight: bold; width: 20px; text-align: center;">1</span>
+                    <!-- Tombol Tambah -->
+                    <button class="btn-circle" onclick="ubahNilai('jumlahPasangan', 1)">+</button>
+                </div>
+            </div>
+            <div style="margin-bottom: 1rem;"></div> <!-- Spacer -->
+
+            <!-- Input Anak -->
+            <div class="grid-2">
+                <div style="background:#f9fafb; padding:0.75rem; border-radius:0.75rem;">
+                    <label>Anak Laki-laki</label>
+                    <input type="number" id="jumlahAnakLk" value="0" min="0" style="background:transparent; border:none; border-bottom:1px solid #ccc; border-radius:0; padding:0.25rem; font-weight:bold;">
+                </div>
+                <div style="background:#f9fafb; padding:0.75rem; border-radius:0.75rem;">
+                    <label>Anak Perempuan</label>
+                    <input type="number" id="jumlahAnakPr" value="0" min="0" style="background:transparent; border:none; border-bottom:1px solid #ccc; border-radius:0; padding:0.25rem; font-weight:bold;">
+                </div>
+            </div>
+            <div style="margin-bottom: 1rem;"></div>
+
+            <!-- Input Orang Tua -->
+            <div style="background:#f9fafb; padding:0.75rem; border-radius:0.75rem; margin-bottom: 1rem;">
+                <label style="margin-bottom: 0.5rem;">Orang Tua Pewaris (Masih Hidup?)</label>
+                <div style="display: flex; gap: 1rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" id="ayahHidup" style="transform: scale(1.2);"> Ayah
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" id="ibuHidup" style="transform: scale(1.2);"> Ibu
+                    </label>
+                </div>
+            </div>
+
+            <!-- Input Saudara -->
+            <div class="form-group">
+                <label>Jumlah Total Saudara (Hidup)</label>
+                <p class="text-small" style="margin-bottom: 0.5rem;">
+                    Gabungan Laki-laki & Perempuan. (≥2 orang mengurangi bagian Ibu).
+                </p>
+                <input type="number" id="jumlahSaudara" placeholder="0" min="0">
+            </div>
+
+        </section>
+
+        <!-- TOMBOL HITUNG -->
+        <button onclick="hitungWaris()" class="btn-primary">
+            <!-- Ikon Kalkulator -->
+            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-6 1.5c1.38 0 2.5 1.12 2.5 2.5s-1.12 2.5-2.5 2.5-2.5-1.12-2.5-2.5 1.12-2.5 2.5-2.5zM6 19v-2h2v2H6zm0-4v-2h2v2H6zm0-4v-2h2v2H6zm3.5 8v-2h2.5v2h-2.5zm0-4v-2h2.5v2h-2.5zm0-4v-2h2.5v2h-2.5zm5 8v-2h2.5v2h-2.5zm0-4v-2h2.5v2h-2.5zm0-4v-2h2.5v2h-2.5zm4 8v-6h2v6h-2z"/></svg>
+            Hitung Pembagian
+        </button>
+
+        <!-- BAGIAN HASIL (Awalnya tersembunyi) -->
+        <div id="areaHasil" class="result-container">
+            <div class="result-header">
+                <h3 style="color: var(--primary-dark); font-weight: bold;">Hasil Perhitungan</h3>
+                <p class="text-small">Harta Bersih (Netto): <span id="teksHartaBersih" style="font-weight: bold;">Rp 0</span></p>
+            </div>
+            
+            <!-- Daftar Ahli Waris akan dimasukkan ke sini oleh JavaScript -->
+            <div id="daftarAhliWaris"></div>
+            
+            <div style="padding: 1rem; background-color: #fffbeb; font-size: 0.75rem; color: #92400e;">
+                <strong>Perhatian:</strong> Perhitungan ini menggunakan kaidah umum (Jumhur). Untuk kasus rumit (Kalalah, Aul, Radd), mohon konsultasi ke Ustadz.
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MODAL INFO -->
+    <div id="modalInfo" class="modal-overlay">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="font-weight: bold; color: var(--primary-dark);">Dasar Hukum</h3>
+                <button onclick="tutupInfo()" style="border: none; background: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            <div style="font-size: 0.9rem; line-height: 1.5;">
+                <p><strong>QS An-Nisa: 11</strong><br>Anak Laki = 2x Anak Pr. Ayah & Ibu = 1/6 (jika ada anak).</p>
+                <br>
+                <p><strong>QS An-Nisa: 12</strong><br>Suami 1/2 atau 1/4. Istri 1/4 atau 1/8.</p>
+                <br>
+                <p><strong>Prioritas</strong><br>Lunasi Hutang & Wasiat sebelum bagi waris.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- BAGIAN JAVASCRIPT (LOGIKA APLIKASI) -->
+    <script>
+        /* --- 1. FUNGSI UTILITAS / ALAT BANTU --- */
+
+        // Fungsi untuk memformat angka menjadi format Rupiah (IDR)
+        // Menggunakan Intl.NumberFormat bawaan browser (Tanpa library luar)
+        function formatRupiah(angka) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(angka);
+        }
+
+        // Fungsi untuk membuka Modal Info
+        function bukaInfo() {
+            document.getElementById('modalInfo').style.display = 'flex';
+        }
+
+        // Fungsi untuk menutup Modal Info
+        function tutupInfo() {
+            document.getElementById('modalInfo').style.display = 'none';
+        }
+
+        /* --- 2. LOGIKA UI (TAMPILAN) --- */
+
+        // Fungsi mengubah label Istri/Suami saat radio button gender pewaris diganti
+        function ubahLabelPasangan() {
+            // Ambil nilai radio button yang sedang terpilih
+            const gender = document.querySelector('input[name="gender"]:checked').value;
+            const label = document.getElementById('labelPasangan');
+            const spanJumlah = document.getElementById('jumlahPasangan');
+            
+            if (gender === 'male') {
+                // Jika pewaris Laki-laki, maka pasangan adalah Istri
+                label.textContent = "Istri";
+                // Istri bisa lebih dari 1, jadi kita tidak mereset jumlahnya ke 1 di sini agar user bisa atur
+            } else {
+                // Jika pewaris Perempuan, maka pasangan adalah Suami
+                label.textContent = "Suami";
+                spanJumlah.textContent = "1"; // Suami hanya boleh 1
+            }
+        }
+
+        // Fungsi untuk tombol Tambah (+) dan Kurang (-) pada input pasangan
+        function ubahNilai(idElemen, perubahan) {
+            const elemen = document.getElementById(idElemen);
+            let nilaiSekarang = parseInt(elemen.textContent); // Ubah teks jadi angka
+            const genderPewaris = document.querySelector('input[name="gender"]:checked').value;
+
+            // Logika validasi
+            if (idElemen === 'jumlahPasangan' && genderPewaris === 'female') {
+                return; // Jika pewaris perempuan, suami fix 1, tidak bisa diubah
+            }
+
+            nilaiSekarang += perubahan; // Tambah atau kurang
+
+            // Batasan Min dan Max
+            if (nilaiSekarang < 0) nilaiSekarang = 0; // Tidak boleh minus
+            if (idElemen === 'jumlahPasangan' && genderPewaris === 'male' && nilaiSekarang > 4) {
+                nilaiSekarang = 4; // Istri maksimal 4
+            }
+            if (idElemen === 'jumlahPasangan' && genderPewaris === 'female' && nilaiSekarang > 1) {
+                nilaiSekarang = 1; // Suami maksimal 1
+            }
+            
+            // Update tampilan angka
+            elemen.textContent = nilaiSekarang;
+        }
+
+        /* --- 3. LOGIKA INTI PERHITUNGAN WARIS (ENGINE) --- */
+        
+        function hitungWaris() {
+            // -- LANGKAH A: MENGAMBIL DATA DARI INPUT --
+            // Mengambil nilai input dan mengubahnya jadi angka (float/int). Jika kosong, dianggap 0.
+            const totalAset = parseFloat(document.getElementById('totalAsset').value) || 0;
+            const hutang = parseFloat(document.getElementById('debt').value) || 0;
+            const biayaJenazah = parseFloat(document.getElementById('funeralCost').value) || 0;
+            const inputWasiat = parseFloat(document.getElementById('wasiat').value) || 0;
+            
+            const genderPewaris = document.querySelector('input[name="gender"]:checked').value;
+            const jumlahPasangan = parseInt(document.getElementById('jumlahPasangan').textContent);
+            const jumlahAnakLk = parseInt(document.getElementById('jumlahAnakLk').value) || 0;
+            const jumlahAnakPr = parseInt(document.getElementById('jumlahAnakPr').value) || 0;
+            const ayahHidup = document.getElementById('ayahHidup').checked;
+            const ibuHidup = document.getElementById('ibuHidup').checked;
+            const jumlahSaudara = parseInt(document.getElementById('jumlahSaudara').value) || 0;
+
+            // -- LANGKAH B: MENGHITUNG HARTA BERSIH (NETTO) --
+            // Rumus: Harta kotor - Hutang - Biaya Pengurusan Jenazah
+            const hartaSebelumWasiat = totalAset - hutang - biayaJenazah;
+            
+            // Validasi jika harta habis buat bayar hutang
+            if (hartaSebelumWasiat <= 0) {
+                alert("Harta tidak cukup setelah dikurangi hutang dan biaya jenazah.");
+                return;
+            }
+
+            // Aturan Wasiat: Maksimal 1/3 dari harta bersih setelah hutang
+            let maxWasiat = hartaSebelumWasiat / 3;
+            let wasiatFinal = inputWasiat;
+            
+            // Jika input wasiat melebihi 1/3, potong otomatis
+            if (inputWasiat > maxWasiat) {
+                wasiatFinal = maxWasiat;
+            }
+
+            // Harta Final yang siap dibagi
+            const hartaWaris = hartaSebelumWasiat - wasiatFinal;
+            
+            // Tampilkan harta bersih di UI
+            document.getElementById('teksHartaBersih').textContent = formatRupiah(hartaWaris);
+
+            // -- LANGKAH C: LOGIKA PEMBAGIAN (ALGORITMA FARAIDH) --
+            let ahliWaris = []; // Array untuk menampung hasil
+            const punyaAnak = (jumlahAnakLk > 0 || jumlahAnakPr > 0);
+            
+            // 1. PASANGAN (Suami/Istri)
+            if (jumlahPasangan > 0) {
+                let bagian, pecahan, alasan;
+                
+                if (genderPewaris === 'male') { // Pewaris Laki-laki -> Ahli waris Istri
+                    // Istri dapat 1/8 jika ada anak, 1/4 jika tidak ada
+                    bagian = punyaAnak ? 1/8 : 1/4;
+                    pecahan = punyaAnak ? "1/8" : "1/4";
+                    alasan = punyaAnak ? "Ada keturunan (QS An-Nisa:12)" : "Tidak ada keturunan (QS An-Nisa:12)";
+                    
+                    let totalDiterima = hartaWaris * bagian;
+                    
+                    ahliWaris.push({
+                        nama: "Istri",
+                        jumlah: jumlahPasangan,
+                        teksBagian: pecahan,
+                        totalNilai: totalDiterima,
+                        perOrang: totalDiterima / jumlahPasangan, // Dibagi rata jika istri > 1
+                        dalil: alasan
+                    });
+                } else { // Pewaris Perempuan -> Ahli waris Suami
+                    // Suami dapat 1/4 jika ada anak, 1/2 jika tidak ada
+                    bagian = punyaAnak ? 1/4 : 1/2;
+                    pecahan = punyaAnak ? "1/4" : "1/2";
+                    alasan = punyaAnak ? "Ada keturunan (QS An-Nisa:12)" : "Tidak ada keturunan (QS An-Nisa:12)";
+                    
+                    let totalDiterima = hartaWaris * bagian;
+                    
+                    ahliWaris.push({
+                        nama: "Suami",
+                        jumlah: 1,
+                        teksBagian: pecahan,
+                        totalNilai: totalDiterima,
+                        perOrang: totalDiterima,
+                        dalil: alasan
+                    });
+                }
+            }
+
+            // 2. ORANG TUA (Ayah & Ibu)
+            // --- AYAH ---
+            if (ayahHidup) {
+                let nilaiAyah = 0;
+                let teksPecahan = "";
+                let catatan = "";
+                
+                if (punyaAnak && jumlahAnakLk > 0) {
+                    // Ada Anak Laki: Ayah cuma dapat 1/6 (tidak dapat sisa)
+                    nilaiAyah = hartaWaris * (1/6);
+                    teksPecahan = "1/6";
+                    catatan = "Ada anak laki-laki (QS An-Nisa:11)";
+                } else if (punyaAnak && jumlahAnakLk === 0) {
+                    // Ada Anak Perempuan saja: Ayah dapat 1/6 + Sisa (Ashabah)
+                    // Kita hitung 1/6 dulu, sisanya nanti ditambahkan di akhir
+                    nilaiAyah = hartaWaris * (1/6);
+                    teksPecahan = "1/6 + Sisa";
+                    catatan = "Ada anak perempuan (QS An-Nisa:11)";
+                } else {
+                    // Tidak ada anak: Ayah jadi Ashabah (mengambil semua sisa)
+                    teksPecahan = "Sisa ('Ashabah)";
+                    catatan = "Tidak ada anak, Ayah menerima sisa.";
+                }
+                
+                ahliWaris.push({
+                    nama: "Ayah",
+                    jumlah: 1,
+                    teksBagian: teksPecahan,
+                    totalNilai: nilaiAyah,
+                    perOrang: nilaiAyah,
+                    dalil: catatan,
+                    apakahAyah: true // Penanda untuk logika sisa nanti
+                });
+            }
+
+            // --- IBU ---
+            if (ibuHidup) {
+                let porsiIbu, catatanIbu;
+                // Ibu dapat 1/6 jika ada anak ATAU ada saudara lebih dari 1
+                if (punyaAnak || jumlahSaudara > 1) { // Perhatikan: saudara > 1 mengurangi bagian ibu
+                    porsiIbu = 1/6;
+                    catatanIbu = punyaAnak ? "Ada keturunan (QS An-Nisa:11)" : "Ada saudara ≥ 2 (QS An-Nisa:11)";
+                } else {
+                    // Ibu dapat 1/3 jika tidak ada anak dan saudara maks 1/0
+                    porsiIbu = 1/3;
+                    catatanIbu = "Tidak ada anak & sdr sedikit (QS An-Nisa:11)";
+                }
+                
+                let nilaiIbu = hartaWaris * porsiIbu;
+                ahliWaris.push({
+                    nama: "Ibu",
+                    jumlah: 1,
+                    teksBagian: porsiIbu === 1/6 ? "1/6" : "1/3",
+                    totalNilai: nilaiIbu,
+                    perOrang: nilaiIbu,
+                    dalil: catatanIbu
+                });
+            }
+
+            // 3. ANAK PEREMPUAN (Jika tidak ada anak laki-laki)
+            // Hitung sisa harta sementara setelah diambil pasangan & ortu
+            let sisaHarta = hartaWaris - ahliWaris.reduce((total, h) => {
+                // Jangan kurangi bagian Ayah jika Ayah statusnya Ashabah (karena nilainya masih 0 atau 1/6)
+                // Kita kurangi saja totalNilai yang sudah fix
+                return total + h.totalNilai;
+            }, 0);
+
+            if (jumlahAnakLk === 0 && jumlahAnakPr > 0) {
+                let porsiPr, catatanPr;
+                if (jumlahAnakPr === 1) {
+                    porsiPr = 1/2; // Sendirian dapat setengah
+                    catatanPr = "Anak pr tunggal (QS An-Nisa:11)";
+                } else {
+                    porsiPr = 2/3; // Lebih dari satu dapat dua pertiga (dibagi rata)
+                    catatanPr = "Anak pr > 1 (QS An-Nisa:11)";
+                }
+                
+                let nilaiPr = hartaWaris * porsiPr;
+                
+                ahliWaris.push({
+                    nama: "Anak Perempuan",
+                    jumlah: jumlahAnakPr,
+                    teksBagian: jumlahAnakPr === 1 ? "1/2" : "2/3",
+                    totalNilai: nilaiPr,
+                    perOrang: nilaiPr / jumlahAnakPr,
+                    dalil: catatanPr
+                });
+                
+                // Update sisa harta setelah diambil anak perempuan
+                sisaHarta = hartaWaris - ahliWaris.reduce((total, h) => total + h.totalNilai, 0);
+            }
+
+            // 4. PEMBAGIAN SISA ('ASHABAH)
+            // Urutan penerima sisa: Anak Laki > Ayah > Saudara Laki
+            
+            if (jumlahAnakLk > 0) {
+                // KASUS A: Ada Anak Laki-laki
+                // Sisa harta dibagi antara Anak Lk dan Anak Pr dengan rasio 2:1
+                
+                if (sisaHarta < 0) sisaHarta = 0; // Jaga-jaga
+
+                // Hitung total "bagian" (Saham)
+                // Anak Lk dihitung 2 saham, Anak Pr dihitung 1 saham
+                const totalSaham = (jumlahAnakLk * 2) + jumlahAnakPr;
+                const nilaiSatuSaham = sisaHarta / totalSaham;
+
+                // Masukkan Anak Laki-laki
+                ahliWaris.push({
+                    nama: "Anak Laki-laki ('Ashabah)",
+                    jumlah: jumlahAnakLk,
+                    teksBagian: "Sisa (2 bagian)",
+                    totalNilai: nilaiSatuSaham * 2 * jumlahAnakLk,
+                    perOrang: nilaiSatuSaham * 2,
+                    dalil: "Menghabiskan sisa (QS An-Nisa:11)"
+                });
+
+                // Jika ada anak perempuan, mereka ditarik jadi Ashabah
+                if (jumlahAnakPr > 0) {
+                    ahliWaris.push({
+                        nama: "Anak Perempuan ('Ashabah bil Ghair)",
+                        jumlah: jumlahAnakPr,
+                        teksBagian: "Sisa (1 bagian)",
+                        totalNilai: nilaiSatuSaham * jumlahAnakPr,
+                        perOrang: nilaiSatuSaham,
+                        dalil: "Ditarik 'ashabah oleh sdr laki (QS An-Nisa:11)"
+                    });
+                }
+            } else if (jumlahAnakLk === 0 && jumlahAnakPr > 0) {
+                // KASUS B: Tidak ada Anak Lk, tapi ada Anak Pr (Mereka sudah ambil jatah fardh di atas)
+                // Sisa diberikan ke Ayah (jika ada) atau Saudara
+                
+                if (ayahHidup) {
+                    // Update objek Ayah yang sudah ada di array
+                    let objAyah = ahliWaris.find(h => h.nama === "Ayah");
+                    if (objAyah) {
+                        objAyah.totalNilai += sisaHarta; // Tambahkan sisa ke 1/6 tadi
+                        objAyah.teksBagian += " + Sisa";
+                        objAyah.dalil += " & Sisa (karena tak ada anak lk).";
+                        objAyah.perOrang = objAyah.totalNilai;
+                    }
+                } else {
+                    // Ayah tidak ada -> Sisa ke Saudara/Paman
+                    if (sisaHarta > 0) {
+                        ahliWaris.push({
+                            nama: "Saudara/Kerabat Laki Terdekat",
+                            jumlah: 1, // Disederhanakan
+                            teksBagian: "Sisa",
+                            totalNilai: sisaHarta,
+                            perOrang: sisaHarta,
+                            dalil: "Sisa untuk wali laki-laki (Hadits)"
+                        });
+                    }
+                }
+            } else if (!punyaAnak) {
+                // KASUS C: Tidak punya anak sama sekali
+                if (ayahHidup) {
+                    // Ayah ambil semua sisa setelah Istri/Ibu
+                    let objAyah = ahliWaris.find(h => h.nama === "Ayah");
+                    if (objAyah) {
+                        objAyah.totalNilai = sisaHarta;
+                        objAyah.perOrang = sisaHarta;
+                    }
+                } else {
+                    // Kalalah (Tak ada anak, Tak ada ayah)
+                    if (sisaHarta > 0) {
+                         ahliWaris.push({
+                            nama: "Saudara/Ahli Waris Lainnya",
+                            jumlah: "N/A",
+                            teksBagian: "Sisa",
+                            totalNilai: sisaHarta,
+                            perOrang: sisaHarta,
+                            dalil: "Kalalah (QS An-Nisa: 176 / 12)"
+                        });
+                    }
+                }
+            }
+
+            // -- LANGKAH D: RENDER (MENAMPILKAN) HASIL KE LAYAR --
+            tampilkanHasil(ahliWaris);
+        }
+
+        // Fungsi membuat HTML untuk daftar hasil
+        function tampilkanHasil(dataAhliWaris) {
+            const wadahList = document.getElementById('daftarAhliWaris');
+            const areaHasil = document.getElementById('areaHasil');
+            
+            // Bersihkan hasil lama
+            wadahList.innerHTML = "";
+            
+            // Tampilkan container hasil
+            areaHasil.style.display = 'block';
+
+            if (dataAhliWaris.length === 0) {
+                wadahList.innerHTML = "<div style='padding:1rem; text-align:center;'>Tidak ada ahli waris utama.</div>";
+                return;
+            }
+
+            // Loop setiap ahli waris dan buat elemen HTML-nya
+            dataAhliWaris.forEach(item => {
+                // Jangan tampilkan jika nilainya 0 (kecuali memang sisa 0)
+                if (item.totalNilai <= 0 && !item.teksBagian.includes("Sisa")) return;
+
+                // Buat elemen div baris baru
+                const baris = document.createElement('div');
+                baris.className = "heir-item";
+                
+                // Isi HTML baris tersebut
+                baris.innerHTML = `
+                    <div>
+                        <div style="font-weight:bold; color:var(--text-dark);">
+                            ${item.nama} 
+                            <span class="tag-badge">${item.jumlah > 1 ? item.jumlah + ' Orang' : 'Sendiri'}</span>
+                        </div>
+                        <div class="text-small text-italic" style="color:var(--primary-dark); margin-top:0.25rem;">
+                            ${item.dalil}
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-weight:bold; color:var(--primary-dark); font-size:1.1rem;">
+                            ${formatRupiah(item.totalNilai)}
+                        </div>
+                        <div class="text-small" style="background:#f3f4f6; padding:2px 6px; border-radius:4px; display:inline-block;">
+                            Bagian: ${item.teksBagian}
+                        </div>
+                    </div>
+                `;
+                
+                // Jika jumlah orang lebih dari 1, tampilkan "per orang dapat sekian"
+                if (item.jumlah > 1 && typeof item.jumlah === 'number') {
+                    const infoPerOrang = document.createElement('div');
+                    infoPerOrang.className = "text-small";
+                    infoPerOrang.style.textAlign = "right";
+                    infoPerOrang.style.color = "#9ca3af";
+                    infoPerOrang.style.marginTop = "0.25rem";
+                    infoPerOrang.innerText = `Per orang: ${formatRupiah(item.perOrang)}`;
+                    // Masukkan ke dalam div kolom kanan
+                    baris.lastElementChild.appendChild(infoPerOrang);
+                }
+
+                wadahList.appendChild(baris);
+            });
+            
+            // Scroll otomatis ke bagian hasil agar user tahu sudah dihitung
+            areaHasil.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
